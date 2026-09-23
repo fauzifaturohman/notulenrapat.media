@@ -17,6 +17,7 @@
     --accent: #06b6d4;
     --danger: #ef4444;
     --success: #10b981;
+    --warn: #f59e0b;
     --shadow: 0 1px 3px rgba(15,23,42,.06), 0 8px 24px -8px rgba(15,23,42,.12);
   }
   [data-theme="dark"]{
@@ -94,6 +95,11 @@
     padding: 3px 10px; border-radius: 999px;
     background: rgba(79,70,229,.1); color: var(--primary);
   }
+  .card-head .badge.live{
+    background: rgba(239,68,68,.12); color: var(--danger);
+    animation: blink 1.2s infinite;
+  }
+  @keyframes blink{50%{opacity:.45;}}
   .card-body{padding: 18px;}
 
   /* ---------- FORM ---------- */
@@ -151,7 +157,92 @@
     color: var(--primary);
   }
   .rec-controls{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; width:100%;}
-  .rec-controls select{width:auto; min-width:170px;}
+  .rec-controls select{width:auto; min-width:170px; flex:1 1 auto;}
+
+  /* ---------- LEVEL METER ---------- */
+  .level-wrap{width:100%; max-width:340px; display:flex; flex-direction:column; gap:4px;}
+  .level-meter{
+    width:100%; height:14px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 999px; overflow:hidden;
+    position:relative;
+  }
+  .level-bar{
+    height:100%; width:0%;
+    background: var(--success);
+    border-radius: 999px;
+    transition: width .05s linear, background .12s;
+  }
+  .level-scale{display:flex; justify-content:space-between; font-size:.66rem; color:var(--muted); font-weight:600;}
+  .clip-flag{
+    font-size:.72rem; font-weight:800; color:var(--danger);
+    text-align:center; height:14px; opacity:0; transition: opacity .1s;
+  }
+  .clip-flag.on{opacity:1;}
+
+  /* ---------- ADVANCED CONTROLS ---------- */
+  .advanced{
+    width:100%;
+    display:grid; gap:14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 15px;
+    margin-top: 4px;
+  }
+  .advanced .row{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  .advanced .row > label{font-size:.8rem; font-weight:700; color:var(--muted); white-space:nowrap;}
+  .gain-val{
+    font-size:.82rem; font-weight:800; color:var(--primary);
+    font-variant-numeric: tabular-nums; min-width:46px; text-align:right;
+  }
+  input[type="range"]{
+    -webkit-appearance:none; appearance:none;
+    height: 6px; border-radius: 99px;
+    background: linear-gradient(90deg, var(--border), var(--border));
+    flex: 1; min-width: 130px; cursor:pointer; outline:none;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:22px; height:22px; border-radius:50%;
+    background: var(--primary); border: 3px solid var(--card);
+    box-shadow: 0 2px 8px rgba(79,70,229,.45); cursor:pointer;
+    transition: transform .12s;
+  }
+  input[type="range"]::-webkit-slider-thumb:active{transform: scale(1.15);}
+  input[type="range"]::-moz-range-thumb{
+    width:20px; height:20px; border-radius:50%;
+    background: var(--primary); border: 3px solid var(--card);
+    box-shadow: 0 2px 8px rgba(79,70,229,.45); cursor:pointer;
+  }
+  .toggle-chips{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:.75rem; font-weight:700;
+    padding: 7px 12px; border-radius: 999px;
+    border: 1.5px solid var(--border); background: var(--card);
+    color: var(--muted);
+    cursor:pointer; user-select:none;
+    transition: all .18s;
+  }
+  .chip input{display:none;}
+  .chip.on{
+    background: rgba(79,70,229,.12);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .chip:hover{border-color: var(--primary);}
+
+  /* ---------- AUDIO PREVIEW ---------- */
+  .audio-preview{
+    width:100%; display:none; flex-direction:column; gap:11px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 15px;
+    animation: fadeIn .3s ease;
+  }
+  .audio-preview .ap-title{font-size:.78rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.4px;}
+  .audio-preview audio{width:100%; height:40px;}
 
   /* ---------- BUTTONS ---------- */
   .btn{
@@ -176,13 +267,23 @@
   .btn:disabled{opacity:.45; cursor:not-allowed;}
 
   /* ---------- TRANSCRIPT ---------- */
+  .transcript-tools{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .transcript-tools .spacer{flex:1;}
   .transcript{
-    max-height: 380px; overflow-y:auto;
+    max-height: 55vh; overflow-y:auto;
     display:flex; flex-direction:column; gap:10px;
     padding-right: 6px;
+    transition: max-height .25s;
+    scroll-behavior: smooth;
   }
-  .transcript::-webkit-scrollbar{width:7px;}
+  .transcript.expanded{max-height: none;}
+  .transcript::-webkit-scrollbar{width:8px;}
+  .transcript::-webkit-scrollbar-track{background: transparent;}
   .transcript::-webkit-scrollbar-thumb{background: var(--border); border-radius:99px;}
+  .transcript::-webkit-scrollbar-thumb:hover{background: var(--muted);}
   .empty{
     text-align:center; color: var(--muted); font-size:.87rem;
     padding: 32px 12px; font-style: italic;
@@ -202,10 +303,12 @@
     font-variant-numeric: tabular-nums; flex:0 0 auto; padding-top:3px; opacity:.85;
   }
   .line .tx{flex:1; word-break: break-word;}
+  .line.marker{background: rgba(6,182,212,.08); border-left-color: var(--primary); font-size:.84rem; color: var(--muted); font-style:italic;}
   .interim{
     color: var(--muted); font-style: italic;
     padding: 10px 13px; border-left: 3px dashed var(--border);
     border-radius: 12px; font-size:.92rem; display:none;
+    margin-top: 10px;
   }
   .interim::before{content:"🎙️ ";}
 
@@ -251,6 +354,7 @@
     border: 1px solid rgba(239,68,68,.3);
     color: var(--danger);
     border-radius: 12px; padding: 12px 15px; margin-bottom:14px;
+    line-height:1.6;
   }
 
   footer{
@@ -266,6 +370,7 @@
     box-shadow: 0 10px 30px -6px rgba(0,0,0,.5);
     opacity:0; pointer-events:none; z-index: 999;
     transition: transform .35s cubic-bezier(.2,.9,.3,1.3), opacity .3s;
+    max-width: 90vw; text-align:center;
   }
   .toast.show{transform: translate(-50%, 0); opacity:1;}
 
@@ -274,15 +379,16 @@
     .header-inner p{display:none;}
     .card-body{padding:15px;}
     .timer{font-size:1.35rem;}
+    .transcript{max-height: 62vh;}
   }
 
   /* ---------- PRINT ---------- */
   @media print{
     header.app-header, .recorder, .export-bar, .action-input,
-    .del, .hint, footer, .icon-btn, .no-print{display:none !important;}
+    .del, .hint, footer, .icon-btn, .no-print, .transcript-tools{display:none !important;}
     body{background:#fff; color:#000; padding:0;}
     .card{border:1px solid #ccc; box-shadow:none; break-inside: avoid; margin-bottom:12px;}
-    .transcript{max-height:none; overflow:visible;}
+    .transcript{max-height:none !important; overflow:visible;}
     .line{background:#f8f8f8;}
   }
 </style>
@@ -346,6 +452,13 @@
         <div class="mic-wrap">
           <button class="mic-btn" id="micBtn" title="Mulai / Hentikan rekaman">🎤</button>
         </div>
+
+        <div class="level-wrap">
+          <div class="level-meter"><div class="level-bar" id="levelBar"></div></div>
+          <div class="level-scale"><span>−60 dB</span><span>−30</span><span>0 dB</span></div>
+          <div class="clip-flag" id="clipFlag">⚠️ TERLALU KERAS — jauhkan mikrofon</div>
+        </div>
+
         <div class="timer" id="timer">00:00:00</div>
         <div class="status" id="status">Tekan tombol mikrofon untuk mulai merekam</div>
 
@@ -363,13 +476,46 @@
             <option value="zh-CN">🇨🇳 中文</option>
             <option value="es-ES">🇪🇸 Español</option>
           </select>
+          <select id="micSelect" title="Pilih mikrofon">
+            <option value="">🎤 Mikrofon Default</option>
+          </select>
+        </div>
+
+        <div class="rec-controls">
           <button class="btn small" id="clearTranscript">🗑️ Hapus Transkrip</button>
+          <button class="btn small" id="resetAudio">🎧 Reset Rekaman Audio</button>
+        </div>
+
+        <div class="advanced">
+          <div class="row">
+            <label for="gainSlider">🎚️ Penguatan Mikrofon</label>
+            <input type="range" id="gainSlider" min="0.5" max="6" step="0.1" value="2">
+            <span class="gain-val" id="gainVal">2.0×</span>
+          </div>
+          <div class="toggle-chips">
+            <label class="chip on" id="chipNS"><input type="checkbox" id="chkNS" checked>🔇 Noise Suppression</label>
+            <label class="chip on" id="chipEC"><input type="checkbox" id="chkEC" checked>🔁 Echo Cancellation</label>
+            <label class="chip on" id="chipAG"><input type="checkbox" id="chkAG" checked>📈 Auto Gain</label>
+          </div>
+          <div class="toggle-chips">
+            <label class="chip on" id="chipAS"><input type="checkbox" id="autoScroll" checked>⬇️ Auto-scroll transkrip</label>
+          </div>
+        </div>
+
+        <div class="audio-preview" id="audioPreview">
+          <div class="ap-title">🎧 Rekaman Audio (dengan penguatan &amp; kompresi)</div>
+          <audio id="audioPlayer" controls preload="metadata"></audio>
+          <button class="btn small primary" id="downloadAudio" style="align-self:flex-start;">⬇️ Unduh Audio</button>
         </div>
 
         <div class="hint" style="width:100%; margin-top:4px;">
-          <strong>💡 Tips Zoom:</strong> Untuk rapat daring, putar suara Zoom melalui <em>speaker</em> HP/laptop,
-          lalu mikrofon akan menangkap pembicaraan. Gunakan <em>headset</em> hanya jika Anda ingin mencatat
-          suara Anda sendiri. Pastikan koneksi internet stabil dan tab ini tetap aktif.
+          <strong>💡 Tips akurasi maksimal:</strong>
+          1) Atur <em>penguatan mikrofon</em> sampai VU-meter rata-rata di area <strong>hijau</strong> (60–75%).
+          2) Hindari bilah menyentuh zona merah — itu menyebabkan distorsi &amp; transkripsi kacau.
+          3) Untuk Zoom, putar suara lewat <em>speaker</em> lalu dekatkan HP ke speaker, atau gunakan headset
+          jika hanya ingin merekam suara Anda sendiri.
+          4) Tab harus tetap aktif &amp; koneksi internet stabil (mesin transkripsi bekerja di server).
+          5) Rekaman audio (.webm) tersimpan sebagai cadangan — bisa diunduh &amp; ditranskrip ulang manual.
         </div>
       </div>
     </div>
@@ -379,9 +525,15 @@
   <section class="card">
     <div class="card-head">
       <span class="ic">📄</span> Transkrip Otomatis
-      <span class="badge" id="lineCount">0 baris</span>
+      <span class="badge" id="lineCount">0 baris · 0 kata</span>
     </div>
     <div class="card-body">
+      <div class="transcript-tools no-print">
+        <button class="btn small" id="expandBtn">🔍 Perbesar</button>
+        <button class="btn small" id="scrollBottomBtn">⬇️ Ke Bawah</button>
+        <div class="spacer"></div>
+        <span class="hint" style="padding:6px 11px; font-size:.72rem;">Tanpa batas baris — scroll bebas</span>
+      </div>
       <div class="transcript" id="transcript">
         <div class="empty" id="emptyMsg">Belum ada transkrip. Mulai rekam untuk melihat hasilnya di sini.</div>
       </div>
@@ -449,11 +601,33 @@
   const recBadge     = $('recBadge');
   const timerEl      = $('timer');
   const langSelect   = $('langSelect');
+  const micSelect    = $('micSelect');
   const transcriptEl = $('transcript');
   const interimEl    = $('interim');
   const emptyMsg     = $('emptyMsg');
   const lineCountEl  = $('lineCount');
   const supportWarn  = $('supportWarn');
+
+  const levelBar     = $('levelBar');
+  const clipFlag     = $('clipFlag');
+  const gainSlider   = $('gainSlider');
+  const gainVal      = $('gainVal');
+  const chkNS        = $('chkNS');
+  const chkEC        = $('chkEC');
+  const chkAG        = $('chkAG');
+  const autoScrollCb = $('autoScroll');
+  const chipNS       = $('chipNS');
+  const chipEC       = $('chipEC');
+  const chipAG       = $('chipAG');
+  const chipAS       = $('chipAS');
+
+  const audioPreview = $('audioPreview');
+  const audioPlayer  = $('audioPlayer');
+  const downloadAudioBtn = $('downloadAudio');
+  const resetAudioBtn    = $('resetAudio');
+
+  const expandBtn      = $('expandBtn');
+  const scrollBottomBtn= $('scrollBottomBtn');
 
   const fTitle     = $('fTitle');
   const fPlace     = $('fPlace');
@@ -472,18 +646,37 @@
   /* =========================================================
      STATE
   ========================================================= */
-  const STORAGE_KEY = 'notulen-rapat-v1';
+  const STORAGE_KEY = 'notulen-rapat-v2';
 
   const state = {
-    transcript: [],   // [{ ts: "00:01:23", text: "..." }]
-    actions: [],      // [{ id, text, done }]
+    transcript: [],
+    actions: [],
     recording: false,
-    elapsed: 0,       // detik
+    elapsed: 0,
     timerId: null
   };
 
   let recognition = null;
   let wantListening = false;
+  let speechSupported = false;
+  let autoScroll = true;
+
+  /* =========================================================
+     AUDIO ENGINE STATE
+  ========================================================= */
+  let audioCtx      = null;
+  let mediaStream   = null;
+  let srcNode       = null;
+  let gainNode      = null;
+  let compNode      = null;
+  let analyserNode  = null;
+  let destNode      = null;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let lastAudioURL  = null;
+  let levelRAF      = null;
+  let clipTimer     = null;
+  let peakHold      = 0;
 
   /* =========================================================
      UTILITAS
@@ -492,7 +685,7 @@
     toastEl.textContent = msg;
     toastEl.classList.add('show');
     clearTimeout(toast._t);
-    toast._t = setTimeout(() => toastEl.classList.remove('show'), 2200);
+    toast._t = setTimeout(() => toastEl.classList.remove('show'), 2400);
   }
 
   function pad(n){ return String(n).padStart(2, '0'); }
@@ -526,25 +719,32 @@
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   function checkSupport(){
-    if (!SpeechRecognition){
-      supportWarn.style.display = 'block';
-      supportWarn.innerHTML =
-        '⚠️ <strong>Browser tidak mendukung Web Speech API.</strong> ' +
-        'Gunakan <strong>Google Chrome</strong>, <strong>Microsoft Edge</strong>, atau ' +
-        '<strong>Safari</strong> terbaru. Anda tetap bisa menulis catatan manual dan action item.';
-      micBtn.disabled = true;
-      micBtn.style.opacity = '.45';
-      micBtn.style.cursor = 'not-allowed';
-      return false;
-    }
+    speechSupported = !!SpeechRecognition;
+
     if (!window.isSecureContext){
       supportWarn.style.display = 'block';
       supportWarn.innerHTML =
         '⚠️ <strong>Koneksi tidak aman.</strong> Mikrofon hanya berfungsi pada ' +
         '<strong>HTTPS</strong> atau <strong>localhost</strong>. ' +
         'GitHub Pages sudah HTTPS, jadi aman.';
+    }
+
+    if (!speechSupported){
+      supportWarn.style.display = 'block';
+      supportWarn.innerHTML =
+        '⚠️ <strong>Browser ini tidak mendukung Web Speech API.</strong> ' +
+        'Transkripsi otomatis dinonaktifkan, namun Anda <strong>tetap bisa merekam audio</strong> ' +
+        '(file .webm dapat diunduh). Untuk transkripsi otomatis gunakan <strong>Google Chrome</strong>, ' +
+        '<strong>Microsoft Edge</strong>, atau <strong>Safari</strong> terbaru.';
       return false;
     }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      supportWarn.style.display = 'block';
+      supportWarn.innerHTML = '⚠️ <strong>getUserMedia tidak tersedia</strong> di browser ini.';
+      return false;
+    }
+
     return true;
   }
 
@@ -572,10 +772,227 @@
   });
 
   /* =========================================================
-     TRANSKRIP — RENDER
+     AUDIO ENGINE — FUNGSI INTI
+  ========================================================= */
+  function pickMimeType(){
+    if (!window.MediaRecorder) return '';
+    const candidates = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/ogg;codecs=opus',
+      'audio/mp4',
+      ''
+    ];
+    for (const m of candidates){
+      if (!m) return '';
+      try {
+        if (MediaRecorder.isTypeSupported(m)) return m;
+      } catch(e){}
+    }
+    return '';
+  }
+
+  async function ensureAudioEngine(){
+    // Sudah jalan? cukup resume context.
+    if (mediaStream && mediaStream.active){
+      if (audioCtx && audioCtx.state === 'suspended'){
+        try { await audioCtx.resume(); } catch(e){}
+      }
+      return;
+    }
+
+    const wantsNS = chkNS.checked;
+    const wantsEC = chkEC.checked;
+    const wantsAG = chkAG.checked;
+
+    const constraints = {
+      audio: {
+        echoCancellation: wantsEC,
+        noiseSuppression: wantsNS,
+        autoGainControl: wantsAG,
+        sampleRate: 48000,
+        channelCount: 1
+      },
+      video: false
+    };
+
+    if (micSelect.value && micSelect.value !== 'default'){
+      constraints.audio.deviceId = { exact: micSelect.value };
+    }
+
+    mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new Ctx({ latencyHint: 'interactive' });
+    if (audioCtx.state === 'suspended'){
+      try { await audioCtx.resume(); } catch(e){}
+    }
+
+    srcNode = audioCtx.createMediaStreamSource(mediaStream);
+
+    // 1) Penguatan (gain) — dinaikkan oleh slider
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = parseFloat(gainSlider.value) || 1;
+
+    // 2) Kompresor — menyeimbangkan level keras/pelan agar transkripsi stabil
+    compNode = audioCtx.createDynamicsCompressor();
+    compNode.threshold.value = -22;
+    compNode.knee.value      = 26;
+    compNode.ratio.value     = 10;
+    compNode.attack.value    = 0.003;
+    compNode.release.value   = 0.25;
+
+    // 3) Analyser — untuk VU-meter
+    analyserNode = audioCtx.createAnalyser();
+    analyserNode.fftSize = 2048;
+    analyserNode.smoothingTimeConstant = 0.55;
+
+    srcNode.connect(gainNode);
+    gainNode.connect(compNode);
+    compNode.connect(analyserNode);
+    // CATATAN: tidak di-connect ke audioCtx.destination agar tidak feedback.
+
+    // 4) MediaStreamDestination — untuk MediaRecorder (file audio cadangan)
+    destNode = audioCtx.createMediaStreamDestination();
+    compNode.connect(destNode);
+
+    // 5) MediaRecorder — bitrate tinggi, mono, opus
+    if (window.MediaRecorder){
+      const mime = pickMimeType();
+      try {
+        mediaRecorder = mime
+          ? new MediaRecorder(destNode.stream, { mimeType: mime, audioBitsPerSecond: 128000 })
+          : new MediaRecorder(destNode.stream);
+      } catch(e){
+        try { mediaRecorder = new MediaRecorder(destNode.stream); } catch(err){ mediaRecorder = null; }
+      }
+      if (mediaRecorder){
+        mediaRecorder.ondataavailable = function(e){
+          if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+        };
+      }
+    }
+
+    startLevelMeter();
+    refreshMicList();
+  }
+
+  function teardownAudioEngine(){
+    cancelAnimationFrame(levelRAF); levelRAF = null;
+
+    if (mediaRecorder && mediaRecorder.state !== 'inactive'){
+      try { mediaRecorder.stop(); } catch(e){}
+    }
+    mediaRecorder = null;
+
+    if (mediaStream){
+      mediaStream.getTracks().forEach(t => { try { t.stop(); } catch(e){} });
+      mediaStream = null;
+    }
+
+    if (audioCtx){
+      try { audioCtx.close(); } catch(e){}
+      audioCtx = null;
+    }
+
+    srcNode = gainNode = compNode = analyserNode = destNode = null;
+
+    levelBar.style.width = '0%';
+    clipFlag.classList.remove('on');
+  }
+
+  async function refreshMicList(){
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const mics = devices.filter(d => d.kind === 'audioinput');
+      const cur = micSelect.value;
+      micSelect.innerHTML = '';
+
+      if (mics.length === 0){
+        const o = document.createElement('option');
+        o.value = '';
+        o.textContent = '🎤 Mikrofon Default';
+        micSelect.appendChild(o);
+        return;
+      }
+
+      mics.forEach((m, i) => {
+        const o = document.createElement('option');
+        o.value = m.deviceId;
+        o.textContent = '🎤 ' + (m.label || ('Mikrofon ' + (i + 1)));
+        micSelect.appendChild(o);
+      });
+
+      if (cur && mics.some(m => m.deviceId === cur)) micSelect.value = cur;
+    } catch(e){}
+  }
+
+  /* =========================================================
+     VU-METER (level meter real-time)
+  ========================================================= */
+  function startLevelMeter(){
+    if (!analyserNode) return;
+    cancelAnimationFrame(levelRAF);
+
+    const buf = new Uint8Array(analyserNode.fftSize);
+
+    function tick(){
+      if (!analyserNode){ levelRAF = requestAnimationFrame(tick); return; }
+
+      analyserNode.getByteTimeDomainData(buf);
+
+      // RMS
+      let sum = 0;
+      let peak = 0;
+      for (let i = 0; i < buf.length; i++){
+        const v = (buf[i] - 128) / 128;
+        sum += v * v;
+        const av = Math.abs(v);
+        if (av > peak) peak = av;
+      }
+      const rms = Math.sqrt(sum / buf.length);
+
+      // dBFS  (1.0 = 0 dB) → kita map -60..0 dB ke 0..100%
+      const db = 20 * Math.log10(rms || 1e-5);
+      let pct = (db + 60) / 60 * 100;
+      pct = Math.max(0, Math.min(100, pct));
+
+      levelBar.style.width = pct + '%';
+
+      if (pct >= 88 || peak >= 0.985){
+        levelBar.style.background = 'var(--danger)';
+        clipFlag.classList.add('on');
+        clearTimeout(clipTimer);
+        clipTimer = setTimeout(() => clipFlag.classList.remove('on'), 900);
+      } else if (pct >= 62){
+        levelBar.style.background = 'var(--warn)';
+        clipFlag.classList.remove('on');
+      } else {
+        levelBar.style.background = 'var(--success)';
+        clipFlag.classList.remove('on');
+      }
+
+      // peak hold sederhana (tidak dipakai visual, hanya untuk deteksi)
+      peakHold = Math.max(peakHold * 0.92, peak);
+
+      levelRAF = requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  /* =========================================================
+     TRANSKRIP — RENDER (TANPA BATAS BARIS)
   ========================================================= */
   function updateLineCount(){
-    lineCountEl.textContent = state.transcript.length + ' baris';
+    const lines = state.transcript.length;
+    let words = 0;
+    for (let i = 0; i < state.transcript.length; i++){
+      const t = state.transcript[i].text;
+      if (!t) continue;
+      words += t.trim().split(/\s+/).filter(Boolean).length;
+    }
+    lineCountEl.textContent = lines + ' baris · ' + words + ' kata';
   }
 
   function renderTranscript(){
@@ -593,7 +1010,7 @@
 
   function makeLine(item){
     const div = document.createElement('div');
-    div.className = 'line';
+    div.className = 'line' + (item.marker ? ' marker' : '');
     const ts = document.createElement('span');
     ts.className = 'ts';
     ts.textContent = '[' + item.ts + ']';
@@ -605,17 +1022,19 @@
     return div;
   }
 
-  function addTranscriptLine(text){
-    text = text.trim();
+  function addTranscriptLine(text, isMarker){
+    text = String(text || '').trim();
     if (!text) return;
-    const item = { ts: fmtTime(state.elapsed), text };
+
+    const item = { ts: fmtTime(state.elapsed), text: text };
+    if (isMarker) item.marker = true;
     state.transcript.push(item);
 
     if (emptyMsg.parentNode) emptyMsg.style.display = 'none';
 
     transcriptEl.appendChild(makeLine(item));
     updateLineCount();
-    transcriptEl.scrollTop = transcriptEl.scrollHeight;
+    if (autoScroll) scrollTranscriptBottom();
 
     saveStateDebounced();
   }
@@ -625,16 +1044,21 @@
   }
 
   /* =========================================================
-     SPEECH RECOGNITION
+     SPEECH RECOGNITION — DENGAN AUTO-RESTART & BACKOFF
   ========================================================= */
+  let restartDelay = 300;
+  let consecutiveErrors = 0;
+
   function createRecognition(){
     const r = new SpeechRecognition();
-    r.continuous = true;
-    r.interimResults = true;
+    r.continuous      = true;
+    r.interimResults  = true;
     r.maxAlternatives = 1;
     r.lang = langSelect.value;
 
     r.onstart = function(){
+      consecutiveErrors = 0;
+      restartDelay = 300;
       statusEl.textContent = '🔴 Sedang merekam... bicara sekarang';
       statusEl.classList.add('live');
       recBadge.textContent = 'Merekam';
@@ -646,7 +1070,7 @@
         const res = event.results[i];
         const txt = res[0].transcript;
         if (res.isFinal){
-          addTranscriptLine(txt);
+          addTranscriptLine(txt, false);
         } else {
           interim += txt;
         }
@@ -654,7 +1078,7 @@
       if (interim){
         interimEl.textContent = interim;
         interimEl.style.display = 'block';
-        scrollTranscriptBottom();
+        if (autoScroll) scrollTranscriptBottom();
       } else {
         interimEl.style.display = 'none';
         interimEl.textContent = '';
@@ -662,70 +1086,119 @@
     };
 
     r.onerror = function(e){
-      if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+      const err = e.error;
+
+      if (err === 'not-allowed' || err === 'service-not-allowed'){
         wantListening = false;
-        statusEl.textContent = '❌ Akses mikrofon ditolak. Izinkan mikrofon di pengaturan browser.';
+        statusEl.textContent = '❌ Akses mikrofon/transkripsi ditolak. Izinkan mikrofon di pengaturan browser.';
         statusEl.classList.remove('live');
         stopRecordingUI();
-      } else if (e.error === 'no-speech'){
-        // abaikan, akan restart otomatis
-      } else if (e.error === 'audio-capture'){
-        wantListening = false;
-        statusEl.textContent = '❌ Mikrofon tidak terdeteksi.';
-        statusEl.classList.remove('live');
-        stopRecordingUI();
-      } else if (e.error === 'network'){
-        statusEl.textContent = '⚠️ Koneksi bermasalah, mencoba menyambung ulang...';
+        return;
       }
+
+      if (err === 'audio-capture'){
+        wantListening = false;
+        statusEl.textContent = '❌ Mikrofon tidak terdeteksi / dipakai aplikasi lain.';
+        statusEl.classList.remove('live');
+        stopRecordingUI();
+        return;
+      }
+
+      if (err === 'no-speech'){
+        // Normal — dibiarkan, onend akan restart
+        return;
+      }
+
+      if (err === 'network'){
+        consecutiveErrors++;
+        statusEl.textContent = '⚠️ Koneksi bermasalah — mencoba menyambung ulang (' + consecutiveErrors + ')';
+        return;
+      }
+
+      if (err === 'aborted'){
+        return;
+      }
+
+      consecutiveErrors++;
+      statusEl.textContent = '⚠️ Error: ' + err + ' — mencoba lanjut...';
     };
 
     r.onend = function(){
-      // Auto-restart jika masih ingin merekam (Chrome sering berhenti otomatis)
       if (wantListening && state.recording){
-        setTimeout(() => {
+        // Exponential backoff agar tidak spam saat error beruntun
+        const delay = restartDelay;
+        restartDelay = Math.min(Math.round(restartDelay * 1.7), 4000);
+
+        setTimeout(function(){
           if (wantListening && state.recording){
-            try { r.start(); } catch(err){ /* sudah berjalan */ }
+            try {
+              if (recognition) recognition.lang = langSelect.value;
+              r.start();
+            } catch(err){ /* sudah berjalan */ }
           }
-        }, 350);
+        }, delay);
       }
     };
 
     return r;
   }
 
-  function startRecording(){
-    if (!SpeechRecognition) return;
+  /* =========================================================
+     MULAI / STOP REKAMAN
+  ========================================================= */
+  async function startRecording(){
+    if (state.recording) return;
+
+    // 1) Siapkan audio engine (mikrofon + meter + recorder)
+    try {
+      await ensureAudioEngine();
+    } catch (e){
+      supportWarn.style.display = 'block';
+      supportWarn.innerHTML =
+        '⚠️ <strong>Tidak dapat mengakses mikrofon:</strong> ' +
+        escapeHtml(e && (e.message || e.name) || 'Unknown error') +
+        '<br>Pastikan izin mikrofon sudah diberikan dan tidak ada aplikasi lain yang memakainya.';
+      statusEl.textContent = '❌ Gagal mengakses mikrofon';
+      return;
+    }
 
     wantListening = true;
     state.recording = true;
 
-    if (!recognition){
-      recognition = createRecognition();
+    // 2) Mulai MediaRecorder (hanya sekali per sesi, biar tidak terpotong saat jeda)
+    if (mediaRecorder && mediaRecorder.state === 'inactive'){
+      try { mediaRecorder.start(1000); } catch(e){}
     }
-    recognition.lang = langSelect.value;
 
-    try {
-      recognition.start();
-    } catch(e){
-      // kemungkinan sudah berjalan
+    // 3) Mulai SpeechRecognition
+    if (speechSupported){
+      if (!recognition) recognition = createRecognition();
+      recognition.lang = langSelect.value;
+      restartDelay = 300;
+      try { recognition.start(); } catch(e){ /* sudah berjalan */ }
+    } else {
+      statusEl.textContent = '🔴 Merekam audio (transkripsi otomatis tidak didukung browser ini)';
     }
 
     micBtn.classList.add('recording');
     micBtn.textContent = '⏹';
     recBadge.textContent = 'Merekam';
-    statusEl.textContent = '🔴 Sedang merekam... bicara sekarang';
+    recBadge.classList.add('live');
+    if (speechSupported){
+      statusEl.textContent = '🔴 Sedang merekam... bicara sekarang';
+    }
     statusEl.classList.add('live');
 
     // Timer
     clearInterval(state.timerId);
-    state.timerId = setInterval(() => {
+    state.timerId = setInterval(function(){
       state.elapsed++;
       timerEl.textContent = fmtTime(state.elapsed);
+      if (state.elapsed % 5 === 0) saveStateDebounced();
     }, 1000);
 
-    // Tandai waktu mulai di transkrip
     if (state.transcript.length === 0){
-      addTranscriptLine('— Rekaman dimulai —');
+      addTranscriptLine('— Rekaman dimulai —', true);
     }
 
     saveStateDebounced();
@@ -737,6 +1210,7 @@
     micBtn.classList.remove('recording');
     micBtn.textContent = '🎤';
     recBadge.textContent = 'Berhenti';
+    recBadge.classList.remove('live');
     statusEl.classList.remove('live');
     clearInterval(state.timerId);
     state.timerId = null;
@@ -746,31 +1220,102 @@
 
   function stopRecording(){
     wantListening = false;
-    if (recognition){
-      try { recognition.stop(); } catch(e){}
-    }
+    if (recognition){ try { recognition.stop(); } catch(e){} }
     stopRecordingUI();
     statusEl.textContent = '⏸️ Rekaman dijeda. Tekan mikrofon untuk melanjutkan.';
+    refreshAudioPreview();
     saveStateDebounced();
   }
 
-  micBtn.addEventListener('click', () => {
+  micBtn.addEventListener('click', function(){
     if (state.recording) stopRecording();
     else startRecording();
   });
 
-  langSelect.addEventListener('change', () => {
+  langSelect.addEventListener('change', function(){
     if (recognition) recognition.lang = langSelect.value;
-    if (state.recording){
-      // restart dengan bahasa baru
+    if (state.recording && speechSupported){
       wantListening = false;
       try { recognition.stop(); } catch(e){}
-      setTimeout(() => {
+      setTimeout(function(){
+        if (!state.recording) return;
         wantListening = true;
         try { recognition.lang = langSelect.value; recognition.start(); } catch(e){}
       }, 400);
     }
     saveStateDebounced();
+  });
+
+  /* =========================================================
+     AUDIO PREVIEW / DOWNLOAD
+  ========================================================= */
+  function buildAudioBlob(){
+    if (!recordedChunks.length) return null;
+    const mime = (mediaRecorder && mediaRecorder.mimeType) || 'audio/webm';
+    return new Blob(recordedChunks, { type: mime });
+  }
+
+  function refreshAudioPreview(){
+    const blob = buildAudioBlob();
+    if (!blob){ audioPreview.style.display = 'none'; return; }
+
+    if (lastAudioURL) URL.revokeObjectURL(lastAudioURL);
+    lastAudioURL = URL.createObjectURL(blob);
+    audioPlayer.src = lastAudioURL;
+    audioPreview.style.display = 'flex';
+  }
+
+  downloadAudioBtn.addEventListener('click', function(){
+    const blob = buildAudioBlob();
+    if (!blob){ toast('Belum ada rekaman audio'); return; }
+    const mime = blob.type || 'audio/webm';
+    const ext = /mp4/.test(mime) ? 'm4a' : /ogg/.test(mime) ? 'ogg' : 'webm';
+    downloadBlob(blob, fileBase() + '.' + ext);
+    toast('⬇️ File audio diunduh');
+  });
+
+  resetAudioBtn.addEventListener('click', function(){
+    if (state.recording){
+      toast('⏸️ Hentikan rekaman dulu');
+      return;
+    }
+    if (!recordedChunks.length){ toast('Tidak ada rekaman audio'); return; }
+    if (!confirm('Hapus seluruh rekaman audio? (transkrip teks tetap aman)')) return;
+
+    recordedChunks = [];
+    if (lastAudioURL){ URL.revokeObjectURL(lastAudioURL); lastAudioURL = null; }
+    audioPlayer.removeAttribute('src');
+    audioPreview.style.display = 'none';
+    toast('🎧 Rekaman audio dihapus');
+  });
+
+  /* =========================================================
+     KONTROL LANJUTAN
+  ========================================================= */
+  gainSlider.addEventListener('input', function(){
+    const v = parseFloat(gainSlider.value) || 1;
+    gainVal.textContent = v.toFixed(1) + '×';
+    if (gainNode) gainNode.gain.value = v;
+    saveStateDebounced();
+  });
+
+  // Chip toggle
+  function bindChip(cb, wrap, onChange){
+    cb.addEventListener('change', function(){
+      wrap.classList.toggle('on', cb.checked);
+      if (onChange) onChange(cb.checked);
+      saveStateDebounced();
+    });
+  }
+
+  bindChip(chkNS, chipNS, function(){ if (!state.recording) teardownAudioEngine(); });
+  bindChip(chkEC, chipEC, function(){ if (!state.recording) teardownAudioEngine(); });
+  bindChip(chkAG, chipAG, function(){ if (!state.recording) teardownAudioEngine(); });
+  bindChip(autoScrollCb, chipAS, function(v){ autoScroll = v; });
+
+  micSelect.addEventListener('change', function(){
+    if (!state.recording) teardownAudioEngine();
+    else toast('ℹ️ Mikrofon baru berlaku saat rekaman berikutnya');
   });
 
   /* =========================================================
@@ -784,14 +1329,14 @@
     }
     actionEmpty.style.display = 'none';
 
-    state.actions.forEach(a => {
+    state.actions.forEach(function(a){
       const li = document.createElement('li');
       if (a.done) li.classList.add('done');
 
       const cb = document.createElement('input');
       cb.type = 'checkbox';
       cb.checked = !!a.done;
-      cb.addEventListener('change', () => {
+      cb.addEventListener('change', function(){
         a.done = cb.checked;
         li.classList.toggle('done', a.done);
         saveStateDebounced();
@@ -804,7 +1349,7 @@
       del.className = 'del';
       del.innerHTML = '&times;';
       del.title = 'Hapus';
-      del.addEventListener('click', () => {
+      del.addEventListener('click', function(){
         state.actions = state.actions.filter(x => x.id !== a.id);
         renderActions();
         saveStateDebounced();
@@ -831,14 +1376,29 @@
   }
 
   $('addAction').addEventListener('click', addAction);
-  actionInput.addEventListener('keydown', e => {
+  actionInput.addEventListener('keydown', function(e){
     if (e.key === 'Enter'){ e.preventDefault(); addAction(); }
+  });
+
+  /* =========================================================
+     TRANSCRIPT TOOLS
+  ========================================================= */
+  expandBtn.addEventListener('click', function(){
+    const isExp = transcriptEl.classList.toggle('expanded');
+    expandBtn.textContent = isExp ? '🔼 Perkecil' : '🔍 Perbesar';
+    if (!isExp && autoScroll) scrollTranscriptBottom();
+  });
+
+  scrollBottomBtn.addEventListener('click', function(){
+    scrollTranscriptBottom();
   });
 
   /* =========================================================
      SIMPAN / MUAT STATE
   ========================================================= */
   let saveTimer = null;
+  let quotaWarned = false;
+
   function saveStateDebounced(){
     clearTimeout(saveTimer);
     saveTimer = setTimeout(saveState, 500);
@@ -859,11 +1419,22 @@
         transcript: state.transcript,
         actions: state.actions,
         elapsed: state.elapsed,
-        lang: langSelect.value
+        lang: langSelect.value,
+        settings: {
+          gain: parseFloat(gainSlider.value) || 2,
+          ns: chkNS.checked,
+          ec: chkEC.checked,
+          ag: chkAG.checked,
+          autoScroll: autoScrollCb.checked
+        }
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      quotaWarned = false;
     } catch(e){
-      // localStorage penuh / diblokir — abaikan
+      if (!quotaWarned && e && (e.name === 'QuotaExceededError' || e.code === 22)){
+        quotaWarned = true;
+        toast('⚠️ Penyimpanan penuh — transkrip terlalu panjang. Unduh .MD/.TXT sekarang!');
+      }
     }
   }
 
@@ -881,14 +1452,30 @@
         fAttendees.value = d.info.attendees || '';
         fAgenda.value    = d.info.agenda || '';
       }
-      notesEl.value      = d.notes || '';
-      state.transcript   = Array.isArray(d.transcript) ? d.transcript : [];
-      state.actions      = Array.isArray(d.actions) ? d.actions : [];
-      state.elapsed      = d.elapsed || 0;
+      notesEl.value    = d.notes || '';
+      state.transcript = Array.isArray(d.transcript) ? d.transcript : [];
+      state.actions    = Array.isArray(d.actions) ? d.actions : [];
+      state.elapsed    = d.elapsed || 0;
 
       if (d.lang){
         langSelect.value = d.lang;
         if (!langSelect.value) langSelect.value = 'id-ID';
+      }
+
+      if (d.settings){
+        const s = d.settings;
+        if (typeof s.gain === 'number'){
+          gainSlider.value = s.gain;
+          gainVal.textContent = parseFloat(s.gain).toFixed(1) + '×';
+        }
+        if (typeof s.ns === 'boolean'){ chkNS.checked = s.ns; chipNS.classList.toggle('on', s.ns); }
+        if (typeof s.ec === 'boolean'){ chkEC.checked = s.ec; chipEC.classList.toggle('on', s.ec); }
+        if (typeof s.ag === 'boolean'){ chkAG.checked = s.ag; chipAG.classList.toggle('on', s.ag); }
+        if (typeof s.autoScroll === 'boolean'){
+          autoScrollCb.checked = s.autoScroll;
+          autoScroll = s.autoScroll;
+          chipAS.classList.toggle('on', s.autoScroll);
+        }
       }
 
       timerEl.textContent = fmtTime(state.elapsed);
@@ -919,7 +1506,7 @@
 
     md += '## 📄 Transkrip\n\n';
     if (state.transcript.length){
-      state.transcript.forEach(t => {
+      state.transcript.forEach(function(t){
         md += '**[' + t.ts + ']** ' + t.text + '\n\n';
       });
     } else {
@@ -931,7 +1518,7 @@
 
     md += '## ✅ Action Items\n\n';
     if (state.actions.length){
-      state.actions.forEach(a => {
+      state.actions.forEach(function(a){
         md += '- [' + (a.done ? 'x' : ' ') + '] ' + a.text + '\n';
       });
     } else {
@@ -961,7 +1548,7 @@
 
     t += '--- TRANSKRIP ---\n';
     if (state.transcript.length){
-      state.transcript.forEach(x => {
+      state.transcript.forEach(function(x){
         t += '[' + x.ts + '] ' + x.text + '\n';
       });
     } else {
@@ -974,7 +1561,7 @@
 
     t += '--- ACTION ITEMS ---\n';
     if (state.actions.length){
-      state.actions.forEach(a => {
+      state.actions.forEach(function(a){
         t += (a.done ? '[v] ' : '[ ] ') + a.text + '\n';
       });
     } else {
@@ -986,8 +1573,7 @@
     return t;
   }
 
-  function download(content, filename, mime){
-    const blob = new Blob([content], { type: mime + ';charset=utf-8' });
+  function downloadBlob(blob, filename){
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -995,7 +1581,11 @@
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2500);
+  }
+
+  function download(content, filename, mime){
+    downloadBlob(new Blob([content], { type: mime + ';charset=utf-8' }), filename);
   }
 
   function fileBase(){
@@ -1006,23 +1596,22 @@
     return t + '_' + (fDate.value || todayISO());
   }
 
-  $('btnMd').addEventListener('click', () => {
+  $('btnMd').addEventListener('click', function(){
     download(buildMarkdown(), fileBase() + '.md', 'text/markdown');
     toast('✅ File Markdown diunduh');
   });
 
-  $('btnTxt').addEventListener('click', () => {
+  $('btnTxt').addEventListener('click', function(){
     download(buildPlainText(), fileBase() + '.txt', 'text/plain');
     toast('✅ File teks diunduh');
   });
 
-  $('btnCopy').addEventListener('click', async () => {
+  $('btnCopy').addEventListener('click', async function(){
     const text = buildPlainText();
     try {
       await navigator.clipboard.writeText(text);
       toast('📋 Semua notulen disalin!');
     } catch(e){
-      // Fallback
       const ta = document.createElement('textarea');
       ta.value = text;
       ta.style.position = 'fixed';
@@ -1039,12 +1628,18 @@
     }
   });
 
-  $('btnPrint').addEventListener('click', () => window.print());
+  $('btnPrint').addEventListener('click', function(){ window.print(); });
 
-  $('btnNew').addEventListener('click', () => {
+  $('btnNew').addEventListener('click', function(){
     if (!confirm('Mulai rapat baru? Semua data saat ini akan dihapus.')) return;
 
     if (state.recording) stopRecording();
+    teardownAudioEngine();
+
+    recordedChunks = [];
+    if (lastAudioURL){ URL.revokeObjectURL(lastAudioURL); lastAudioURL = null; }
+    audioPlayer.removeAttribute('src');
+    audioPreview.style.display = 'none';
 
     fTitle.value = ''; fPlace.value = ''; fAttendees.value = ''; fAgenda.value = '';
     fDate.value = todayISO(); fTime.value = nowHM();
@@ -1056,6 +1651,11 @@
     statusEl.textContent = 'Tekan tombol mikrofon untuk mulai merekam';
     statusEl.classList.remove('live');
     recBadge.textContent = 'Siap';
+    recBadge.classList.remove('live');
+    levelBar.style.width = '0%';
+    clipFlag.classList.remove('on');
+    transcriptEl.classList.remove('expanded');
+    expandBtn.textContent = '🔍 Perbesar';
     renderTranscript();
     renderActions();
     saveState();
@@ -1063,7 +1663,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  $('clearTranscript').addEventListener('click', () => {
+  $('clearTranscript').addEventListener('click', function(){
     if (state.transcript.length === 0) return;
     if (!confirm('Hapus seluruh isi transkrip?')) return;
     state.transcript = [];
@@ -1075,18 +1675,16 @@
   /* =========================================================
      AUTO-SAVE LISTENERS
   ========================================================= */
-  [fTitle, fPlace, fDate, fTime, fAttendees, fAgenda, notesEl].forEach(el => {
+  [fTitle, fPlace, fDate, fTime, fAttendees, fAgenda, notesEl].forEach(function(el){
     el.addEventListener('input', saveStateDebounced);
     el.addEventListener('change', saveStateDebounced);
   });
 
-  // Simpan sebelum halaman ditutup
-  window.addEventListener('beforeunload', () => {
+  window.addEventListener('beforeunload', function(){
     if (state.recording) saveState();
   });
 
-  // Simpan saat tab disembunyikan (mobile)
-  document.addEventListener('visibilitychange', () => {
+  document.addEventListener('visibilitychange', function(){
     if (document.hidden) saveState();
   });
 
@@ -1096,19 +1694,24 @@
   function init(){
     checkSupport();
 
-    // Default tanggal & jam jika kosong
     if (!fDate.value) fDate.value = todayISO();
     if (!fTime.value) fTime.value = nowHM();
 
     loadState();
 
-    // Pastikan tanggal/jam tetap terisi
     if (!fDate.value) fDate.value = todayISO();
     if (!fTime.value) fTime.value = nowHM();
 
+    gainVal.textContent = (parseFloat(gainSlider.value) || 2).toFixed(1) + '×';
     timerEl.textContent = fmtTime(state.elapsed);
     renderTranscript();
     renderActions();
+
+    // Daftar mikrofon awal (label mungkin kosong sampai izin diberikan)
+    refreshMicList();
+    if (navigator.mediaDevices && navigator.mediaDevices.addEventListener){
+      navigator.mediaDevices.addEventListener('devicechange', refreshMicList);
+    }
   }
 
   init();
